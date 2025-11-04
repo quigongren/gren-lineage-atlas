@@ -1,1 +1,1 @@
-# gren-lineage-atlas
+# Gren Lineage Atlas
