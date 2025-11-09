@@ -1,0 +1,10 @@
+[
+  {
+    "child_uid": "p3",
+    "parent_uid": "p1"
+  },
+  {
+    "child_uid": "p3",
+    "parent_uid": "p2"
+  }
+]

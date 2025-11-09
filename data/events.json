@@ -1,0 +1,23 @@
+[
+  {
+    "uid": "e1",
+    "person_uid": "p1",
+    "year": 1950,
+    "label": "Enumerated in 1950 Census (Lake Forest, IL)",
+    "directive_tag": "archival"
+  },
+  {
+    "uid": "e2",
+    "person_uid": "p1",
+    "year": 1948,
+    "label": "Property purchase (Lake County, IL)",
+    "directive_tag": "economic"
+  },
+  {
+    "uid": "e3",
+    "person_uid": "p2",
+    "year": 1950,
+    "label": "1950 Census household member",
+    "directive_tag": "archival"
+  }
+]

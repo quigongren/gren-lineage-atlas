@@ -1,0 +1,88 @@
+[
+  {
+    "uid": "p1",
+    "display_name": "Victor H. Frary",
+    "birth_year": 1918,
+    "death_year": 1999,
+    "branch": "Frary",
+    "tags": [
+      "foundational",
+      "vetted"
+    ],
+    "is_living": false,
+    "socio": {
+      "occupation": "Machinist (postwar)",
+      "education": "HS",
+      "property": "Owner (Lake County, IL)"
+    },
+    "history_notes": [
+      "Post\u2011WWII suburban expansion context",
+      "1950 US Census: Lake Forest, IL"
+    ],
+    "migration": [
+      {
+        "when": "1940s",
+        "from": "Chicago, IL",
+        "to": "Lake Forest, IL"
+      }
+    ],
+    "sources": [
+      {
+        "label": "1950 U.S. Census, ED 49\u201165, Sheet 12"
+      }
+    ],
+    "dna": {
+      "evidence": "Documentary link; DNA triangulation planned"
+    }
+  },
+  {
+    "uid": "p2",
+    "display_name": "Mary S. Frary",
+    "birth_year": 1920,
+    "death_year": 2005,
+    "branch": "Frary",
+    "tags": [
+      "foundational"
+    ],
+    "is_living": false,
+    "socio": {
+      "occupation": "Homemaker",
+      "education": "HS",
+      "property": "Co\u2011owner"
+    },
+    "history_notes": [
+      "1950 U.S. Census: Lake Forest, IL"
+    ],
+    "migration": [],
+    "sources": [
+      {
+        "label": "1950 U.S. Census, ED 49\u201165, Sheet 12"
+      }
+    ],
+    "dna": {
+      "evidence": "\u2014"
+    }
+  },
+  {
+    "uid": "p3",
+    "display_name": "Private (Living)",
+    "birth_year": 1945,
+    "branch": "Frary \u2192 Gren",
+    "tags": [
+      "private",
+      "living"
+    ],
+    "is_living": true,
+    "socio": {
+      "occupation": "\u2014",
+      "education": "\u2014",
+      "property": "\u2014"
+    },
+    "history_notes": [],
+    "migration": [],
+    "sources": [],
+    "dna": {
+      "evidence": "\u2014"
+    }
+  }
+]
