@@ -16,7 +16,7 @@
       "property": "Owner (Lake County, IL)"
     },
     "history_notes": [
-      "Post\u2011WWII suburban expansion context",
+      "Post‑WWII suburban expansion context",
       "1950 US Census: Lake Forest, IL"
     ],
     "migration": [
@@ -28,7 +28,7 @@
     ],
     "sources": [
       {
-        "label": "1950 U.S. Census, ED 49\u201165, Sheet 12"
+        "label": "1950 U.S. Census, ED 49‑65, Sheet 12"
       }
     ],
     "dna": {
@@ -48,7 +48,7 @@
     "socio": {
       "occupation": "Homemaker",
       "education": "HS",
-      "property": "Co\u2011owner"
+      "property": "Co‑owner"
     },
     "history_notes": [
       "1950 U.S. Census: Lake Forest, IL"
@@ -56,33 +56,33 @@
     "migration": [],
     "sources": [
       {
-        "label": "1950 U.S. Census, ED 49\u201165, Sheet 12"
+        "label": "1950 U.S. Census, ED 49‑65, Sheet 12"
       }
     ],
     "dna": {
-      "evidence": "\u2014"
+      "evidence": "—"
     }
   },
   {
     "uid": "p3",
     "display_name": "Private (Living)",
     "birth_year": 1945,
-    "branch": "Frary \u2192 Gren",
+    "branch": "Frary → Gren",
     "tags": [
       "private",
       "living"
     ],
     "is_living": true,
     "socio": {
-      "occupation": "\u2014",
-      "education": "\u2014",
-      "property": "\u2014"
+      "occupation": "—",
+      "education": "—",
+      "property": "—"
     },
     "history_notes": [],
     "migration": [],
     "sources": [],
     "dna": {
-      "evidence": "\u2014"
+      "evidence": "—"
     }
   }
 ]
