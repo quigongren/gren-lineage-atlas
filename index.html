@@ -2,66 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <title>Gren Lineage Atlas</title>
+  <!-- IMPORTANT for GitHub Pages: ensures relative paths resolve under /gren-lineage-atlas/ -->
+  <base href="/gren-lineage-atlas/">
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Gren Lineage Atlas — Public Viewer</title>
-  <link rel="stylesheet" href="styles.css"/>
 
-<!-- d3 must load first -->
-<script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js"></script>
+  <style>
+    html, body { height:100%; margin:0; }
+    #tree { width:100%; height:100vh; } /* ensure visible height */
+    .node circle { fill: #ccc; stroke: #333; }
+    .link { stroke: #999; fill: none; }
+  </style>
 
-<!-- then dTree; this path is reliable -->
-<script src="https://unpkg.com/dtree@2.4.2/dist/dTree.min.js"></script>
-
-<!-- your app last; cache-bust to avoid stale JS -->
-<script src="app.js?v=2" defer></script>
-
+  <!-- D3 v7 (matches code below) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" defer></script>
+  <script src="scripts/app.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <h1>Gren Lineage Atlas</h1>
-    <p class="tagline">A living, public snapshot of the Gren family story</p>
-  </header>
-
-  <main class="layout">
-    <section class="tree-panel">
-      <div id="tree"></div>
-    </section>
-    <aside class="profile-panel" id="profilePanel">
-      <div class="profile-placeholder">
-        <h2>Choose a person</h2>
-        <p>Click any name in the tree to see their profile with socio‑economic, historical, and migration context.</p>
-      </div>
-      <div class="profile" id="profile" hidden>
-        <button id="closeProfile" title="Close">×</button>
-        <h2 id="p_name"></h2>
-        <div class="tabs">
-          <button class="tab active" data-tab="summary">Summary</button>
-          <button class="tab" data-tab="socio">Socio‑Economic</button>
-          <button class="tab" data-tab="history">Historical Context</button>
-          <button class="tab" data-tab="migration">Migration</button>
-          <button class="tab" data-tab="sources">Sources</button>
-          <button class="tab" data-tab="dna">DNA</button>
-        </div>
-        <div class="tabpanes">
-          <div class="tabpane active" id="tab-summary"></div>
-          <div class="tabpane" id="tab-socio"></div>
-          <div class="tabpane" id="tab-history"></div>
-          <div class="tabpane" id="tab-migration"></div>
-          <div class="tabpane" id="tab-sources"></div>
-          <div class="tabpane" id="tab-dna"></div>
-        </div>
-      </div>
-    </aside>
-  </main>
-
-  <section class="timeline-section">
-    <h2>Family Timeline</h2>
-    <p>This interactive timeline updates from a public Google Sheet (no private data). Replace the sheet ID in <code>timeline.html</code>.</p>
-    <iframe title="Timeline" src="timeline.html" loading="lazy"></iframe>
-  </section>
-
-  <footer class="site-footer">
-    <p>© Gren Family Lineage — Public Viewer (v0). Living persons display as “Private (Living)”.</p>
-  </footer>
+  <div id="tree" aria-label="family-tree"></div>
 </body>
 </html>
