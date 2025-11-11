@@ -1,78 +1,146 @@
-// Gren Lineage Atlas — public viewer bootstrap
-const state = { people: {}, events: [], rels: [] };
+// Gren Lineage Atlas – live data adapter for published Google Sheets CSVs
+// Uses D3 v7. Expects an element #tree with visible height (e.g., 100vh).
 
-async function loadData() {
-  const [people, events, rels] = await Promise.all([
-    fetch('data/people.json').then(r=>r.json()),
-    fetch('data/events.json').then(r=>r.json()),
-    fetch('data/rels.json').then(r=>r.json()),
-  ]);
-  state.people = Object.fromEntries(people.map(p => [p.uid, p]));
-  state.events = events;
-  state.rels = rels;
-  buildTree();
+// ---- 1) YOUR PUBLISHED TAB URLS (from your message) ----
+const PEOPLE_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRX3lbO4eCerwTUee0Z_DhiBDgNdEiOGFPRTZBm14sF_qK30oIEkziLypDTN-kADsI60YZDr6zo7v48/pub?gid=0&single=true&output=csv";
+const RELS_CSV   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRX3lbO4eCerwTUee0Z_DhiBDgNdEiOGFPRTZBm14sF_qK30oIEkziLypDTN-kADsI60YZDr6zo7v48/pub?gid=1803841139&single=true&output=csv";
+const EVENTS_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRX3lbO4eCerwTUee0Z_DhiBDgNdEiOGFPRTZBm14sF_qK30oIEkziLypDTN-kADsI60YZDr6zo7v48/pub?gid=180128693&single=true&output=csv"; // reserved for timeline
+
+// ---- 2) UTILITIES ----
+function showError(err) {
+  console.error(err);
+  const el = document.getElementById('tree');
+  if (el) {
+    el.insertAdjacentHTML('beforeend',
+      `<div style="padding:1rem;color:#b00020;background:#fff0f0;border-top:1px solid #e5c6c6;white-space:pre-wrap;">
+         <strong>Error:</strong> ${String(err)}
+       </div>`);
+  }
 }
 
-function buildTree() {
-  const parentSet = new Set(), childSet = new Set();
-  const rels = state.rels;
-  rels.forEach(r => { childSet.add(r.child_uid); parentSet.add(r.parent_uid); });
-  let roots = [...parentSet].filter(uid => !childSet.has(uid));
-  if(roots.length === 0 && Object.keys(state.people).length) roots = [Object.keys(state.people)[0]];
+// Fetch CSV via D3 (robust to CORS when “Publish to web” is used)
+async function getCSV(url) {
+  try {
+    return await d3.csv(url);
+  } catch (e) {
+    throw new Error(`CSV fetch failed: ${url}\n${e}`);
+  }
+}
 
-  const toNode = (uid) => {
-    const p = state.people[uid]; if(!p) return null;
-    const label = p.is_living ? (p.display_name || 'Private (Living)') : (p.display_name || '—');
-    return { name: label, description: p.birth_year?`b. ${p.birth_year}`:'', id: uid, children: childrenOf(uid).map(toNode) };
-  };
-  const childrenOf = (parentUid) => [...new Set(rels.filter(r => r.parent_uid===parentUid).map(r => r.child_uid))];
+// Clean string (tolerate header variations/spaces)
+const norm = s => (s || "").trim();
 
-  const nodes = roots.map(toNode).filter(Boolean);
-  dTree.init(nodes, {
-    target: "#tree",
-    height: 520, width: 900,
-    callbacks: { nodeClick: (name, extra)=> openProfile(extra.id) }
+// ---- 3) BUILD HIERARCHY FROM TABLES ----
+// people: [{id, name, given_name, surname, ...}]
+// relationships: [{relationship_type,parent/.., person1_id, person2_id}, ...] where parent edges are PARENT -> CHILD
+function buildHierarchy(peopleRows, relRows) {
+  // Index people
+  const peopleById = new Map();
+  peopleRows.forEach(p => {
+    const id = norm(p.id);
+    if (!id) return;
+    const name = norm(p.name) ||
+                 [norm(p.given_name), norm(p.surname)].filter(Boolean).join(' ') ||
+                 id;
+    peopleById.set(id, { id, name, raw: p, children: [], _hasParent: false });
   });
+
+  // Parent relationships: we accept either direction, but prefer:
+  // relationship_type === "parent" with person1_id = parent, person2_id = child.
+  relRows.forEach(r => {
+    const type = norm(r.relationship_type).toLowerCase();
+    if (type !== "parent") return;
+    const p1 = norm(r.person1_id); // parent
+    const p2 = norm(r.person2_id); // child
+
+    const parent = peopleById.get(p1);
+    const child  = peopleById.get(p2);
+    if (parent && child) {
+      parent.children.push(child);
+      child._hasParent = true;
+    }
+  });
+
+  // Roots = those without parent
+  const roots = [...peopleById.values()].filter(p => !p._hasParent);
+
+  // If no relationships present, make a single fake root and hang everyone off it
+  if (!roots.length) {
+    const fakeRoot = { id: "ROOT", name: "Family", children: [] };
+    fakeRoot.children = [...peopleById.values()];
+    return fakeRoot;
+  }
+
+  // If multiple roots, create a virtual root
+  if (roots.length > 1) {
+    return { id: "ROOT", name: "Family", children: roots };
+  }
+
+  return roots[0];
 }
 
-function openProfile(uid){
-  const p = state.people[uid]; if(!p) return;
-  document.getElementById('profile').hidden=false;
-  document.querySelector('.profile-placeholder').style.display='none';
-  document.getElementById('p_name').textContent = p.display_name || 'Private (Living)';
-  document.getElementById('tab-summary').innerHTML = [
-    p.birth_year?`<div><strong>Born:</strong> ${p.birth_year}</div>`:'',
-    p.death_year?`<div><strong>Died:</strong> ${p.death_year}</div>`:'',
-    p.branch?`<div><strong>Branch:</strong> ${p.branch}</div>`:'',
-    (p.tags&&p.tags.length)?`<div><strong>Tags:</strong> ${p.tags.join(', ')}</div>`:''
-  ].join('');
-  const se = p.socio||{};
-  document.getElementById('tab-socio').innerHTML = [
-    se.occupation?`<div><strong>Occupation:</strong> ${se.occupation}</div>`:'',
-    se.education?`<div><strong>Education:</strong> ${se.education}</div>`:'',
-    se.property?`<div><strong>Property:</strong> ${se.property}</div>`:''
-  ].join('') || '—';
-  document.getElementById('tab-history').innerHTML = (p.history_notes||[]).map(n=>`<div>• ${n}</div>`).join('') || '—';
-  const mig = p.migration||[];
-  document.getElementById('tab-migration').innerHTML = mig.length? mig.map(m=>`<div>${m.when||''} — ${m.from||''} → ${m.to||''}</div>`).join('') : '—';
-  const src = p.sources||[];
-  document.getElementById('tab-sources').innerHTML = src.length? src.map(s=>`<div>• ${s.label||''}</div>`).join('') : '—';
-  const dna = p.dna||{};
-  document.getElementById('tab-dna').innerHTML = dna.evidence? `<div>${dna.evidence}</div>` : '—';
+// ---- 4) DRAW TREE ----
+function drawTree(rootData) {
+  const el = document.getElementById('tree');
+  if (!el) throw new Error("Missing #tree container.");
+
+  const width  = el.clientWidth  || window.innerWidth;
+  const height = el.clientHeight || Math.max(600, window.innerHeight * 0.9);
+
+  const root = d3.hierarchy(rootData);
+  const treeLayout = d3.tree().size([height - 40, width - 140]);
+  const troot = treeLayout(root);
+
+  const svg = d3.select(el).append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+  // Links
+  svg.append('g')
+    .attr('fill', 'none')
+    .attr('stroke', '#999')
+    .selectAll('path')
+    .data(troot.links())
+    .join('path')
+    .attr('d', d3.linkHorizontal()
+      .x(d => d.y + 80)
+      .y(d => d.x + 20)
+    );
+
+  // Nodes
+  const node = svg.append('g')
+    .selectAll('g')
+    .data(troot.descendants())
+    .join('g')
+    .attr('transform', d => `translate(${d.y + 80}, ${d.x + 20})`);
+
+  node.append('circle')
+    .attr('r', 6)
+    .attr('fill', '#e0e0e0')
+    .attr('stroke', '#333');
+
+  node.append('text')
+    .attr('dx', 10)
+    .attr('dy', 4)
+    .text(d => d.data.name || '(unknown)');
 }
 
-// tabs
-document.addEventListener('click', (e)=>{
-  if(e.target.classList.contains('tab')){
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
-    e.target.classList.add('active');
-    document.getElementById(`tab-${e.target.dataset.tab}`).classList.add('active');
-  }
-  if(e.target.id==='closeProfile'){
-    document.getElementById('profile').hidden=true;
-    document.querySelector('.profile-placeholder').style.display='block';
-  }
-});
+// ---- 5) BOOT ----
+async function boot() {
+  try {
+    // Load people + relationships; events reserved for timeline
+    const [people, rels] = await Promise.all([
+      getCSV(PEOPLE_CSV),
+      getCSV(RELS_CSV),
+      // getCSV(EVENTS_CSV) // ready when timeline hook is added
+    ]);
 
-loadData();
+    // Build hierarchy and render
+    const rootData = buildHierarchy(people, rels);
+    drawTree(rootData);
+  } catch (err) {
+    showError(err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
